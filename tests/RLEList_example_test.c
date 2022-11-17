@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "RLEList.h"
+#include "../RLEList.h"
 #include "test_utilities.h"
 
 typedef bool (*testFunc)(void);
