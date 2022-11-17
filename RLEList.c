@@ -6,8 +6,54 @@ struct RLEList_t{
     RLEList next;
 };
 
-//yossef: 8,7,2,1
-//aaseel: 5,4,3,6
+typedef enum{
+    REMOVE_NULL_ARGUMENT,
+    REMOVE_SUCSSES,
+    REMOVE_NOT_SUITABLE
+}RemoveResult;
+
+RemoveResult _rCase1(RLEList list){
+    if(!list){
+        return REMOVE_NULL_ARGUMENT;
+    }
+    if(list->numOfOccurances > 1){
+        list->numOfOccurances--;
+        return REMOVE_SUCSSES;
+    }
+    return REMOVE_NOT_SUITABLE;
+}
+
+RemoveResult _rCase2(RLEList list, RLEList prev){
+    RLEList tmp;
+    if(!list){
+        return REMOVE_NULL_ARGUMENT;
+    }else if(!prev){
+        tmp = list;
+        list = list->next;
+        free(tmp);
+        return REMOVE_SUCSSES;
+    }else if(!(list->next)){
+        prev->next=NULL;
+        free(list);
+        return REMOVE_SUCSSES;
+    }
+    tmp = list;
+    list = list->next;
+    free(tmp);
+    
+    if(prev->c == list->c){
+        prev->numOfOccurances += list->numOfOccurances;
+        prev->next = list->next;
+        free(list);
+        return REMOVE_SUCSSES;
+    }
+    
+    prev->next = list;
+    return REMOVE_SUCSSES;
+}
+
+
+
 //implement the functions here
 int RLEListSize(RLEList list)
 {
@@ -64,52 +110,41 @@ char RLEListGet(RLEList list, int index, RLEListResult *result)
  }
 }
 
-void RLEListRemove(RLEList list, int index)
-{
- int count = 0;
- while(count != index-1)
- {
-    list = list->next;
+RLEListResult RLEListRemove(RLEList list, int index){
+ RLEList prev = NULL;
+ int count = list->numOfOccurances;
+ 
+ if(!list){
+    return RLE_LIST_NULL_ARGUMENT;
+ }else if(index < 0){
+    return RLE_LIST_INDEX_OUT_OF_BOUNDS;
  }
- RLEList before = list;
- list = list->next;
- RLEList after = list->next;
-  if(index==0)
-  {
-    if(list->numOfOccurances == 1)
-    {
-    _freeNode(list);
-    before->next = after;  
+ 
+ while(count < index+1 || list)
+ {
+    prev = list;
+    list = list->next;
+    count += list->numOfOccurances;
+ }
+    if(!list){
+        return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
-       else{
-           list->numOfOccurances = list->numOfOccurances-1;
-           }
-  }
-  else if(list->next==NULL)
-  {
-    if(list->numOfOccurances == 1)
-    {
-      _freeNode(list);
-    before->next = NULL;
-    }
-    else{
-     list->numOfOccurances = list->numOfOccurances-1;
-    }
-  }
-  else {
-     if(list->numOfOccurances == 1)
-    {
-    _freeNode(list);
-    if(before->c == after->c)
-    {
-      before->numOfOccurances += after->numOfOccurances; 
-      before->next = after->next;
-    }
-    else
-    before->next = after;  
-    }
-    else{
-     list->numOfOccurances = list->numOfOccurances-1;
 
-  }  
+    switch (_rCase1(list)){
+    case REMOVE_NULL_ARGUMENT:
+        return RLE_LIST_ERROR;
+        break;
+    case REMOVE_SUCSSES:
+        return REMOVE_SUCSSES;
+    }
+
+    switch(_rCase2(list, prev)){
+    case REMOVE_NULL_ARGUMENT:
+        return RLE_LIST_ERROR;
+        break;
+    case REMOVE_SUCSSES:
+        return REMOVE_SUCSSES;
+    }
+
+    return RLE_LIST_ERROR;
 }
