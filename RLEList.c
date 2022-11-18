@@ -1,6 +1,7 @@
 #include "RLEList.h"
 #include <stdlib.h>
 
+#define INITIAL_VALUE '\0'
 #define ADD_NEW_LINE 2
 /**
  * Here we define the structure of the RLEList_t
@@ -21,6 +22,15 @@ typedef enum{
     REMOVE_NOT_SUITABLE
 } RemoveResult;
 
+RLEList _nodeCreate(){
+    RLEList new = malloc(sizeof(*new));
+    if(!new){
+        free(new);
+        return NULL;
+    }
+    return new;
+}
+
 RemoveResult _rCase1(RLEList list){
     if(!list){
         return REMOVE_NULL_ARGUMENT;
@@ -32,13 +42,17 @@ RemoveResult _rCase1(RLEList list){
     return REMOVE_NOT_SUITABLE;
 }
 
+//check if the given list is not a dummy node
+//and do the needed changes for that thing
 RemoveResult _rCase2(RLEList list, RLEList prev){
     RLEList tmp;
     if(!list){
+        //and check that prev is not the dummy node
         return REMOVE_NULL_ARGUMENT;
-    }else if(!prev){
+    }else if(prev->c == INITIAL_VALUE){
         tmp = list;
         list = list->next;
+        prev->next = list;
         free(tmp);
         return REMOVE_SUCSSES;
     }else if(!(list->next)){
@@ -61,6 +75,7 @@ RemoveResult _rCase2(RLEList list, RLEList prev){
     return REMOVE_SUCSSES;
 }
 
+//check the dummy node 
 int _nodeCounter(RLEList list){
     int counter = 0;
     while(list){
@@ -82,6 +97,7 @@ int _digitCounter(int num){
     return counter;
 }
 
+//check the dummy node
 int _neededCells(RLEList list){
     int digitCounter = 0, nodeNumber = _nodeCounter(list);
     
@@ -103,12 +119,12 @@ void _writeDigits(char* str, int digitsNum){
 }
 
 RLEList RLEListCreate(){
-    RLEList new = malloc(sizeof(*new));
+    RLEList new = _nodeCreate();
     if(!new){
         free(new);
         return NULL;
-    }
-    new->c = '\0';
+    }    
+    new->c = INITIAL_VALUE;
     new->next = NULL;
     return new;
 }
@@ -124,6 +140,7 @@ void RLEListDestroy(RLEList list){
 
 RLEListResult RLEListAppend(RLEList list, char value) 
 {
+    RLEList ptr;
     if(!list){
         return RLE_LIST_NULL_ARGUMENT;
     }
@@ -136,17 +153,19 @@ RLEListResult RLEListAppend(RLEList list, char value)
         list->numOfOccurances = list->numOfOccurances + 1;
     }
 
-    RLEList ptr = RLEListCreate();
+    ptr = _nodeCreate();
     if(!ptr)
     {
         return RLE_LIST_OUT_OF_MEMORY;
     }
     ptr->c = value;
     ptr->next = NULL;
+    ptr->numOfOccurances =0;
     list->next = ptr;
     return RLE_LIST_SUCCESS;
 }
 
+//check the dummy node and do the needed changes
 int RLEListSize(RLEList list)
 {
     int count = 0;
@@ -156,61 +175,66 @@ int RLEListSize(RLEList list)
     while(list)
     {    
         count += list->numOfOccurances;
+        printf("is: %c\n",list->c);
         list = list->next;
     }
-    return count;
+    return count-1;
 }
 
+//do the needed changes because of the dummy node
 RLEListResult RLEListRemove(RLEList list, int index){
- RLEList prev = NULL;
- int count = list->numOfOccurances;
- 
- if(!list){
-    return RLE_LIST_NULL_ARGUMENT;
- }else if(index < 0){
-    return RLE_LIST_INDEX_OUT_OF_BOUNDS;
- }
- 
- while(count < index+1 || list)
- {
-    prev = list;
-    list = list->next;
-    count += list->numOfOccurances;
- }
+    RLEList prev = NULL;
+    int count = list->numOfOccurances;
+
+    if(!list || !list->next){
+        return RLE_LIST_NULL_ARGUMENT;
+    }else if(index < 0){
+        return RLE_LIST_INDEX_OUT_OF_BOUNDS;
+    }
+
+    while(count < index+1 && list)
+    {
+        prev = list;
+        list = list->next;
+        count += list->numOfOccurances;
+    }
     if(!list){
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
     switch (_rCase1(list)){
-    case REMOVE_NULL_ARGUMENT:
-        return RLE_LIST_ERROR;
-        break;
-    case REMOVE_SUCSSES:
-        return REMOVE_SUCSSES;
-    default: 
-        break;
+        case REMOVE_NULL_ARGUMENT:
+            return RLE_LIST_ERROR;
+            break;
+        case REMOVE_SUCSSES:
+            return RLE_LIST_SUCCESS;
+        default: 
+            break;
     }
 
     switch(_rCase2(list, prev)){
-    case REMOVE_NULL_ARGUMENT:
-        return RLE_LIST_ERROR;
-        break;
-    case REMOVE_SUCSSES:
-        return REMOVE_SUCSSES;
-    default:
-        break;
+        case REMOVE_NULL_ARGUMENT:
+            return RLE_LIST_ERROR;
+            break;
+        case REMOVE_SUCSSES:
+            return RLE_LIST_SUCCESS;
+        default:
+            break;
     }
 
     return RLE_LIST_ERROR;
 }
 
+//dummy node
 char RLEListGet(RLEList list, int index, RLEListResult *result)
 {
     int count = 0;
-    if(!list){
+    if(!result){
+        return 0;
+    }else if(!list){
         *result = RLE_LIST_NULL_ARGUMENT;
         return 0;
     }
-    while((count != index)||(list))
+    while((count != index) && (list))
     {
         list = list->next;
         count+=list->numOfOccurances;
@@ -239,6 +263,7 @@ RLEListResult RLEListMap(RLEList list, MapFunction map_function){
     return RLE_LIST_SUCCESS;
 }
 
+//dummy nooooooooooooooode ya ahbal
 char* RLEListExportToString(RLEList list, RLEListResult* result){
     char* str;
     int i = 0;
