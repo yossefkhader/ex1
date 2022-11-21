@@ -15,13 +15,15 @@ struct RLEList_t{
     int numOfOccurances;
     RLEList next;
 };
-
+// Enum used for returning error codes from remove functions
 typedef enum{
     REMOVE_NULL_ARGUMENT,
     REMOVE_SUCSSES,
     REMOVE_NOT_SUITABLE
 } RemoveResult;
 
+/// @brief A function used to create a new node
+/// @return NULL if the proccess has failed, RLEList if it succeeded
 RLEList _nodeCreate(){
     RLEList new = malloc(sizeof(*new));
     if(!new){
@@ -31,12 +33,15 @@ RLEList _nodeCreate(){
     return new;
 }
 
-RemoveResult _rCase1(RLEList list){
-    if(!list){
+/// @brief The func checks if the list is suitable for the first case of removal
+/// @param node RLEList pointer for the node that we need to remove  
+/// @return REMOVE_NULL_ARGUMENT if the given node is NULL, REMOVE_succ
+RemoveResult _rCase1(RLEList node){
+    if(!node){
         return REMOVE_NULL_ARGUMENT;
     }
-    if(list->numOfOccurances > 1){
-        list->numOfOccurances--;
+    if(node->numOfOccurances > 1){
+        node->numOfOccurances--;
         return REMOVE_SUCSSES;
     }
     return REMOVE_NOT_SUITABLE;
@@ -44,7 +49,7 @@ RemoveResult _rCase1(RLEList list){
 
 
 
-/// @brief the func checks if the list is suitable for the second case of removal
+/// @brief The func checks if the list is suitable for the second case of removal
 /// @param node RLEList pointer for the node that we need to remove 
 /// @param prev RLEList pointer for the previous node of that we need to remove
 /// @return REMOVE_NULL_ARGUMENT if node 
