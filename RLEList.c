@@ -203,7 +203,8 @@ int RLEListSize(RLEList list)
     }else if(list->c == INITIAL_VALUE && list->next == NULL){
         return 0;
     }
-    while(list!= NULL)
+    list = list->next;
+    while(list)
     {    
         count += list->numOfOccurances;
         list = list->next;
@@ -212,25 +213,28 @@ int RLEListSize(RLEList list)
 }
 
 RLEListResult RLEListRemove(RLEList list, int index){
+    //check the the cases because there is an error
     RLEList prev = NULL;
     int count;
 
     if(!list){
         return RLE_LIST_NULL_ARGUMENT;
-    }else if(index < 0){
-        return RLE_LIST_INDEX_OUT_OF_BOUNDS;
-    }else if(list->c == INITIAL_VALUE && list->next == NULL){
+    }else if(index < 0 || index+1 > RLEListSize(list) || 
+            (list->c ==INITIAL_VALUE && list->next==NULL)){
+        
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
 
     prev = list;
-    list = list->next;
-    count = list->numOfOccurances;
+    list = list -> next;
+    count = index+1 - list->numOfOccurances;
 
-    while(count < index+1 && list){
+    while(count > 0 && list->next){
+
         prev = list;
         list = list->next;
-        count += list->numOfOccurances;
+        count -= list->numOfOccurances;
+
     }
     if(!list){
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
@@ -263,22 +267,26 @@ char RLEListGet(RLEList list, int index, RLEListResult *result)
 {
     int count = 0;
     if(!list){
-        if(!result){
-            return 0;
+        if(result){
+            *result = RLE_LIST_NULL_ARGUMENT;
         }
-        *result = RLE_LIST_NULL_ARGUMENT;
         return 0;
-    }else if(list->c ==INITIAL_VALUE && list->next==NULL){
-        if(!result){
-            return 0;
+    }else if(index < 0 || index+1 > RLEListSize(list) || 
+            (list->c ==INITIAL_VALUE && list->next==NULL)){
+        if(result){
+            *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
         }
-        *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
         return 0;
     }
 
-    while(count < index+1 && list){
+    list = list -> next;
+    count = index+1 - list->numOfOccurances;
+
+    while(count > 0 && list->next){
+
         list = list->next;
-        count += list->numOfOccurances;
+        count -= list->numOfOccurances;
+
     }
     if(!list){
         if(!result){
@@ -291,6 +299,7 @@ char RLEListGet(RLEList list, int index, RLEListResult *result)
     if(!result){
         return list->c;
     }
+    
     *result = RLE_LIST_SUCCESS;
     
     return list->c;
