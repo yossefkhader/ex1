@@ -4,6 +4,7 @@
 #define INITIAL_VALUE '\0'
 #define DUMMY_NUMBER -1
 #define ADD_NEW_LINE 2
+#define ZERO '0'
 /**
  * Here we define the structure of the RLEList_t
  * which has 3 parameters:
@@ -104,11 +105,8 @@ RemoveResult _rCase2(RLEList node, RLEList prev){
 
 int _nodeCounter(RLEList list){
     int counter = 0;
-    if(list->c == INITIAL_VALUE){
-        return 0;
-    }
     while(list){
-        if(list->c == INITIAL_VALUE){
+        if(list->numOfOccurances == DUMMY_NUMBER){
             list = list->next;
             continue;
         }
@@ -134,13 +132,14 @@ int _digitCounter(int num){
 /// @param list RLE list that we need to calculate 
 /// @return 0 if the the entered list Is NULL or the list is just the dummy node, else it will return the needed number of cells
 int _neededCells(RLEList list){
-    int digitCounter = 0, nodeNumber = _nodeCounter(list);
-    if(!list || list->c == INITIAL_VALUE){
+    int digitCounter = 0, nodeNumber;
+    if(!list){
         return 0;
     }
-    nodeNumber *= ADD_NEW_LINE;
+    nodeNumber = _nodeCounter(list) * ADD_NEW_LINE;
+
     while(list){
-        if(list->c == INITIAL_VALUE){
+        if(list->numOfOccurances == DUMMY_NUMBER){
             list= list->next;
             continue;
         }
@@ -151,12 +150,13 @@ int _neededCells(RLEList list){
     return nodeNumber + digitCounter;
 }
 
-void _writeDigits(char* str, int digitsNum){
-    while (digitsNum){
-        str[digitsNum-1]= digitsNum%10;
-        digitsNum /= 10;
+void _writeDigits(char* str, int num, int digits){
+    while (digits)
+    {
+        str[digits-1]= num%10 + ZERO;
+        num /= 10;
+        digits--;
     }
-    
 }
 
 RLEList RLEListCreate(){
@@ -191,7 +191,7 @@ RLEListResult RLEListAppend(RLEList list, char value)
       list = list->next;
     }
 
-    if(list->c == value){
+    if(list->c == value && list->numOfOccurances != DUMMY_NUMBER){
         list->numOfOccurances++;
         return RLE_LIST_SUCCESS;
     }
@@ -220,7 +220,7 @@ int RLEListSize(RLEList list)
     }
     
     list = list->next;
-    while(list != NULL)
+    while(list)
     {    
         count += list->numOfOccurances;
         list = list->next;
@@ -331,38 +331,86 @@ char RLEListGet(RLEList list, int index, RLEListResult *result)
 
 RLEListResult RLEListMap(RLEList list, MapFunction map_function){
 
+    RLEList prev, tmp;
     if(!list || !map_function){
         return RLE_LIST_NULL_ARGUMENT;
     }
-
-    while(list){
-        list->c = map_function(list->c);
-        list = list->next;
+    else if(list->numOfOccurances == DUMMY_NUMBER && list->next == NULL)
+    {
+        return RLE_LIST_SUCCESS;
     }
+    
+    list = list->next;
+    list->c = map_function(list->c);
+    prev = list;
+    if(!list->next)
+    {
+        return RLE_LIST_SUCCESS;
+    }
+    list = list->next;
 
+    
+    while(list)
+    {
+        list->c = map_function(list->c);
+        if(prev->c == list->c){
+            prev->numOfOccurances += list->numOfOccurances;
+            prev->next = list->next;
+            if(!list->next)
+            {
+                prev->next = NULL;
+                free(list);
+                return RLE_LIST_SUCCESS;
+            }
+            tmp = list;
+            list = list->next;
+            free(tmp);
+        }
+        else
+        {
+            prev = list;
+            list = list->next;
+        }
+    }
+    
     return RLE_LIST_SUCCESS;
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result){
-    char* str, digits;
-    int i = 0;
+    char* str;
+    int i = 0, digits;
 
-    if(!list){
+    if(!list)
+    {
         if (result)
         {
             *result = RLE_LIST_NULL_ARGUMENT;
         }
         return NULL;
     }
-    else if(list->c == INITIAL_VALUE && list->next == NULL){
-        if(result){
-            *result = RLE_LIST_ERROR;
+    else if(list->numOfOccurances == DUMMY_NUMBER && list->next == NULL)
+    {
+        str = malloc(sizeof(char));
+        if(!str)
+        {
+            free(str);
+            if(result)
+            {
+                *result = RLE_LIST_ERROR;   
+            }
+            return NULL;
         }
-        return NULL;
+        str[0] = '\0';
+        if(result)
+        {
+            *result = RLE_LIST_SUCCESS; 
+        }
+        return str;
     }
 
     str = malloc(sizeof(char) * _neededCells(list)+1);
-    if(!str){
+    if(!str)
+    {
         free(str);
         if(result){
             *result = RLE_LIST_ERROR;   
@@ -371,11 +419,13 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
     }
 
     list = list->next;
-    while(list){
+    while(list)
+    {
         str[i] = list->c;
         digits = _digitCounter(list->numOfOccurances);
-        _writeDigits(&str[++i], digits);
-        str[i + digits] = '\n';
+        _writeDigits(&str[++i], list->numOfOccurances, digits);
+        i+= digits;
+        str[i] = '\n';
         list = list->next;
         i++;
     }
