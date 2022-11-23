@@ -33,6 +33,7 @@ RLEList _nodeCreate(){
     }
     new->next = NULL;
     new->numOfOccurances = 0;
+    new->c = INITIAL_VALUE;
     return new;
 }
 
@@ -59,23 +60,30 @@ RemoveResult _rCase1(RLEList node){
 RemoveResult _rCase2(RLEList node, RLEList prev){
     RLEList tmp;
 
-    if(!node){
+    if(!node)
+    {    
         return REMOVE_NULL_ARGUMENT;
-    }else if(prev->numOfOccurances == DUMMY_NUMBER && node->next == NULL){
-        RLEListDestroy(node);
+    }
+    else if(prev->numOfOccurances == DUMMY_NUMBER && node->next == NULL)
+    {
+        free(node);
+        prev->next = NULL;
         return REMOVE_SUCSSES;
-    }else if(prev->numOfOccurances == DUMMY_NUMBER){
+    }
+    else if(prev->numOfOccurances == DUMMY_NUMBER)
+    {
         tmp = node;
         node = node->next;
         free(tmp);
         prev->next = node;
         return REMOVE_SUCSSES;
-    }else if(node->next == NULL){
+    }
+    else if(node->next == NULL)
+    {
         prev->next=NULL;
         free(node);
         return REMOVE_SUCSSES;
     }
-
     else{
         tmp = node;
         node = node->next;
@@ -158,7 +166,7 @@ RLEList RLEListCreate(){
         return NULL;
     }    
     new->c = INITIAL_VALUE;
-    new->numOfOccurances = -1;
+    new->numOfOccurances = DUMMY_NUMBER;
     new->next = NULL;
     return new;
 }
@@ -195,10 +203,10 @@ RLEListResult RLEListAppend(RLEList list, char value)
         return RLE_LIST_OUT_OF_MEMORY;
     }
     
+    list->next = new;
     new->c = value;
     new->next = NULL;
-    new->numOfOccurances =1;
-    list->next = new;
+    new->numOfOccurances = 1;
     return RLE_LIST_SUCCESS;
 }
 
@@ -207,9 +215,10 @@ int RLEListSize(RLEList list)
     int count = 0;
     if(!list){
         return -1;
-    }else if(list->next == NULL){
-        return -1;
+    }else if(list->numOfOccurances == DUMMY_NUMBER && list->next == NULL){
+        return 0;
     }
+    
     list = list->next;
     while(list != NULL)
     {    
@@ -220,23 +229,26 @@ int RLEListSize(RLEList list)
 }
 
 RLEListResult RLEListRemove(RLEList list, int index){
-    //check the the cases because there is an error
-    RLEList prev = NULL;
+    RLEList prev = NULL;    
     int count;
     
     if(!list)
     {
         return RLE_LIST_NULL_ARGUMENT;
     }
-    else if(index < 0 || index+1 > RLEListSize(list) || 
-            (list->numOfOccurances == DUMMY_NUMBER && list->next==NULL))
+    else if(index < 0 || index+1 > RLEListSize(list))
     {
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
-
+    else if(index == 0 && list->numOfOccurances == DUMMY_NUMBER && list->next==NULL){
+        RLEListDestroy(list);
+        return RLE_LIST_SUCCESS;
+    }
+    
     prev = list;
     list = list -> next;
     count = index+1 - list->numOfOccurances;
+
 
     while(count > 0 && list->next)
     {
@@ -244,6 +256,7 @@ RLEListResult RLEListRemove(RLEList list, int index){
         list = list->next;
         count -= list->numOfOccurances;
     }
+    
     if(!list)
     {
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
@@ -270,7 +283,7 @@ RLEListResult RLEListRemove(RLEList list, int index){
         default:
             break;
     }
-
+    printf("\nerrror\n");
     return RLE_LIST_ERROR;
 }
 
@@ -289,7 +302,6 @@ char RLEListGet(RLEList list, int index, RLEListResult *result)
         }
         return 0;
     }
-
     list = list -> next;
     count = index+1 - list->numOfOccurances;
 
@@ -299,6 +311,7 @@ char RLEListGet(RLEList list, int index, RLEListResult *result)
         count -= list->numOfOccurances;
 
     }
+
     if(!list){
         if(!result){
             return 0;
