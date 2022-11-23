@@ -344,25 +344,29 @@ RLEListResult RLEListMap(RLEList list, MapFunction map_function){
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result){
-    char* str;
+    char* str, digits;
     int i = 0;
 
-    if (!result)
-    {
+    if(!list){
+        if (result)
+        {
+            *result = RLE_LIST_NULL_ARGUMENT;
+        }
         return NULL;
-    }else if(!list){
-        *result = RLE_LIST_NULL_ARGUMENT;
-        return NULL;
-    }else if(list->c == INITIAL_VALUE && list->next == NULL){
-        *result = RLE_LIST_ERROR;
+    }
+    else if(list->c == INITIAL_VALUE && list->next == NULL){
+        if(result){
+            *result = RLE_LIST_ERROR;
+        }
         return NULL;
     }
 
-    str = malloc(sizeof(char) * _neededCells(list));
-    int digits;
+    str = malloc(sizeof(char) * _neededCells(list)+1);
     if(!str){
         free(str);
-        *result = RLE_LIST_ERROR;
+        if(result){
+            *result = RLE_LIST_ERROR;   
+        }
         return NULL;
     }
 
@@ -375,6 +379,10 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
         list = list->next;
         i++;
     }
-    *result = RLE_LIST_SUCCESS;
+    str[i]='\0';
+    if(result)
+    {
+        *result = RLE_LIST_SUCCESS; 
+    }
     return str;
 }
