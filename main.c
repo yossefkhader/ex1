@@ -10,6 +10,12 @@
 #define SPACE ' '
 #define AT '@'
 
+void error (char* message, char* filename)
+{
+    fprintf(stderr, "%s %s\n" ,message ,filename ? filename : "");
+
+}
+
 void _invert(RLEList list, FILE* output)
 {
     RLEListResult result = RLE_LIST_SUCCESS;
@@ -17,16 +23,15 @@ void _invert(RLEList list, FILE* output)
     char c;
     
     if(!list || !output){
-        //error
+        error("Failed: NULL argument", NULL);
         return;
     }
 
     c = RLEListGet(list, i, &result);
     
     if(result == RLE_LIST_NULL_ARGUMENT){
-                //error
-
-        return ;
+        error("Failed: NULL argument", NULL);
+        return;
     }
 
     while(c!=0){
@@ -57,21 +62,28 @@ int main(int argc, char** argv)
 
     if(argc != ARG_SIZE)
     {
+        error("Usage: AsciiArtTool <flags> <source> <target>", NULL);
         return 0;
     }
     
     FILE* input = fopen(argv[SOURCE], "r");
     if(!input){
+        error("Error: cannot open", argv[SOURCE]);
         return 0;
     }
 
-    FILE* output = fopen(argv[SOURCE], "w+");
+    FILE* output = fopen(argv[TARGET], "w");
     if(!output){
+        error("Error: cannot open", argv[TARGET]);
         fclose(input);
         return 0;
     }
 
     list = asciiArtRead(input);
+    if(!list)
+    {
+        error("Failed at creating RLEList", NULL);
+    }
     if(argv[FLAG][1] == ENCODED)
     {
         asciiArtPrintEncoded(list, output);
@@ -82,6 +94,7 @@ int main(int argc, char** argv)
     }
     else
     {
+        error("Error: wrong flag" , argv[FLAG]);
         fclose(input);
         fclose(output);    
         return 0;
