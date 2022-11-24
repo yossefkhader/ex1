@@ -1,5 +1,6 @@
 #include "AsciiArtTool.h"
 
+
 #define CHUNK_SIZE 256
 
 RLEList asciiArtRead(FILE* in_stream){
@@ -29,21 +30,19 @@ RLEList asciiArtRead(FILE* in_stream){
 }
 
 
-RLEListResult asciiArtPrint(RLEList list, FILE *out_stream){
+void asciiArtPrint(RLEList list, FILE *out_stream){
     RLEListResult result = RLE_LIST_SUCCESS;
     int i=0;
     char c;
     
     if(!list || !out_stream){
-        return RLE_LIST_NULL_ARGUMENT;
+        return;
     }
 
     c = RLEListGet(list, i, &result);
     
     if(result == RLE_LIST_NULL_ARGUMENT){
-        return result;
-    }else if(result == RLE_LIST_INDEX_OUT_OF_BOUNDS){
-        return RLE_LIST_NULL_ARGUMENT;
+        return;
     }
 
     while(c!=0){
@@ -52,13 +51,12 @@ RLEListResult asciiArtPrint(RLEList list, FILE *out_stream){
         c = RLEListGet(list, i, &result);
     }
 
-    return RLE_LIST_SUCCESS;
+    return;
 }
 
 
 RLEListResult asciiArtPrintEncoded(RLEList list, FILE *out_stream){
     char* str;
-    int len;
     RLEListResult result;
 
     if(!list || !out_stream){

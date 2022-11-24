@@ -2,7 +2,9 @@
 #define __AsciiArtTool_H__
 
 #include "RLEList.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /// @brief 
 /// @param in_stream 
@@ -13,7 +15,7 @@ RLEList asciiArtRead(FILE* in_stream);
 /// @param list 
 /// @param out_stream 
 /// @return 
-RLEListResult asciiArtPrint(RLEList list, FILE *out_stream);
+void asciiArtPrint(RLEList list, FILE *out_stream);
 
 /// @brief 
 /// @param list 
