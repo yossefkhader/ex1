@@ -14,17 +14,17 @@ RLEList asciiArtRead(FILE* in_stream){
     }
 
     while(fgets(buffer, CHUNK_SIZE, in_stream)!=NULL){
-        
-        for (int i = 0; buffer[i] != '\0'; i++)
-        {
+        int i=0;
+        while(buffer[i] != '\0'){
             result = RLEListAppend(list, buffer[i]);
             if(result == RLE_LIST_NULL_ARGUMENT){
                 RLEListDestroy(list);
                 return NULL;
             }
+            i++;
         }
+        
     }
-
     return list;
     
 }
@@ -68,10 +68,7 @@ RLEListResult asciiArtPrintEncoded(RLEList list, FILE *out_stream){
     if(!str){
         return result;
     }
-    for (int i = 0; str[i]!='\0'; i++){
-        fprintf(out_stream,"%c", str[i]);
-    }
-    
-    free(str);   
+    fprintf(out_stream,"%s", str);
+    free(str);
     return RLE_LIST_SUCCESS;
 }

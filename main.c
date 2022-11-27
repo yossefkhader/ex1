@@ -5,6 +5,7 @@
 #define SOURCE 2
 #define TARGET 3
 #define CHUNK_SIZE 256
+#define MINUS '-'
 #define INVERTED 'i'
 #define ENCODED 'e'
 #define SPACE ' '
@@ -16,49 +17,20 @@ void error (char* message, char* filename)
 
 }
 
-void _invert(RLEList list, FILE* output)
-{
-    RLEListResult result = RLE_LIST_SUCCESS;
-    int i=0;
-    char c;
-    
-    if(!list || !output){
-        error("Failed: NULL argument", NULL);
-        return;
+char invertChar(char c){
+    if(c == SPACE){
+        return AT;
+    }else if(c == AT){
+        return SPACE;
     }
-
-    c = RLEListGet(list, i, &result);
-    
-    if(result == RLE_LIST_NULL_ARGUMENT){
-        error("Failed: NULL argument", NULL);
-        return;
-    }
-
-    while(c!=0){
-        if(c == SPACE)
-        {
-            c = AT;
-            fprintf(output,"%c",c);
-        }
-        else if(c == AT)
-        {
-            c = SPACE;
-            fprintf(output,"%c",c);
-        }
-        else{
-            fprintf(output,"%c",c);
-        }
-        i++;
-        c = RLEListGet(list, i, &result);
-    }
-
-    return;
+    return c;
 }
 
 
 int main(int argc, char** argv)
 { 
     RLEList list;
+    RLEListResult result;
 
     if(argc != ARG_SIZE)
     {
@@ -83,25 +55,38 @@ int main(int argc, char** argv)
     if(!list)
     {
         error("Failed at creating RLEList", NULL);
+        return 0;
+
     }
-    if(argv[FLAG][1] == ENCODED)
+    if(argv[FLAG][0] == MINUS && argv[FLAG][1] == ENCODED)
     {
         asciiArtPrintEncoded(list, output);
     }
-    else if(argv[FLAG][1] == INVERTED)
+    else if(argv[FLAG][0] == MINUS && argv[FLAG][1] == INVERTED)
     {
-        _invert(list ,output);
+        result =  RLEListMap(list, invertChar);
+        if(result != RLE_LIST_SUCCESS)
+        {
+            error("Failed at inverting" , NULL);
+            RLEListDestroy(list);
+            fclose(input);
+            fclose(output);
+        }
+        asciiArtPrint(list, output);
+
     }
     else
     {
         error("Error: wrong flag" , argv[FLAG]);
+        RLEListDestroy(list);
         fclose(input);
         fclose(output);    
+        
         return 0;
     }
 
 
-
+    RLEListDestroy(list);
     fclose(input);
     fclose(output);
     return 1;
