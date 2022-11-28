@@ -5,7 +5,6 @@
 #define DUMMY_NUMBER -1
 #define ADD_NEW_LINE 2
 #define ZERO '0'
-#define NEW_LINE '\n'
 /**
  * Here we define the structure of the RLEList_t
  * which has 3 parameters:
@@ -422,15 +421,13 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
     list = list->next;
     while(list)
     {
-        
         str[i] = list->c;
         digits = _digitCounter(list->numOfOccurances);
         _writeDigits(&str[++i], list->numOfOccurances, digits);
         i+= digits;
-        str[i] = NEW_LINE;
+        str[i] = '\n';
         list = list->next;
         i++;
-
     }
     str[i]='\0';
     if(result)
